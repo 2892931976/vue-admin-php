@@ -24,6 +24,7 @@ class User extends Base
     public function read()
     {
         $uid = request()->post('uid');
+
         $token = request()->post('token');
 
         $res['uid'] = 1;
