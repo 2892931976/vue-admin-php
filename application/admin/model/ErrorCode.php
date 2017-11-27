@@ -27,7 +27,11 @@ class ErrorCode
     // +----------------------------------------------------------------------
     // | 服务级错误码
     // +----------------------------------------------------------------------
-    public static $NOT_LOGIN = 20001; // 未登录
-    public static $TOKEN_FAILED = 20002; // 登录凭证失效
+    public static $HTTP_METHOD_NOT_ALLOWED = 20001; // 网络请求不予许
+    public static $VALIDATION_FAILED = 20002; // 身份验证失败
+    public static $USER_AUTH_FAIL = 20003; // 用户名或者密码错误
+    public static $USER_NOT_PERMISSION = 20003; // 当前没有权限登录
+    public static $AUTH_FAILED = 20004; // 权限验证失败
+    public static $LOGIN_FAILED = 20005; // 登录失效
 
 }
