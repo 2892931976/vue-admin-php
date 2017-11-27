@@ -54,12 +54,11 @@ class Login extends Base
         $info = $admin->toArray();
         unset($info['password']);
         // 权限信息
-        $info['roles'] = ['admin'];
+        $info['roles'] = ['user_manage','user_manage/admin','user_manage/admin/index/index'];
         // 保存用户信息
         $res = Admin::loginInfo($info['id'],$info);
         $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
         $res['avatar'] = !empty($res['avatar']) ? Admin::getAvatarUrl($res['avatar']) : '';
-        $res['roles'] = ['user_manage','user_manage/admin','user_manage/admin/index'];
         return json($res);
     }
 

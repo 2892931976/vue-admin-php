@@ -11,6 +11,29 @@ use \app\common\model\Admin as AdminModel;
 
 class Admin extends Base
 {
+
+    /**
+     * 列表
+     */
+    public function index(){
+
+        $where = [];
+        $limit = request()->get('limit/d',20);
+        //分页配置
+        $paginate = [
+            'type' => 'bootstrap',
+            'var_page' => 'offset',
+            'list_rows' => ($limit <= 0 || $limit > 20) ? 20 : $limit,
+        ];
+        $lists = AdminModel::where($where)
+            ->field('id,username,status,avatar,last_login_ip,last_login_time,create_time')
+            ->paginate($paginate);
+
+        dump($lists);
+
+
+    }
+
     /**
      * 获取用户信息
      * @return \think\response\Json
@@ -33,8 +56,8 @@ class Admin extends Base
             return json($res);
         }
         $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
-        $res['avatar'] = !empty($res['avatar']) ? Admin::getAvatarUrl($res['avatar']) : '';
-        $res['roles'] = ['admin'];
+        $res['avatar'] = !empty($res['avatar']) ? AdminModel::getAvatarUrl($res['avatar']) : '';
+        // $res['roles'] = ['admin'];
         return json($res);
     }
 }
