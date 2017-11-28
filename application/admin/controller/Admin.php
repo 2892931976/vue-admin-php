@@ -19,23 +19,27 @@ class Admin extends BaseCheckUser
     {
 
         $where = [];
+        $order = 'id DESC';
         $status = request()->get('status', '');
         if ($status !== ''){
             $where[] = ['status','=',intval($status)];
+            $order = '';
         }
         $username = request()->get('username', '');
         if (!empty($username)){
             $where[] = ['username','like',$username . '%'];
+            $order = '';
         }
         $limit = request()->get('limit/d', 20);
         //分页配置
         $paginate = [
             'type' => 'bootstrap',
-            'var_page' => 'offset',
+            'var_page' => 'page',
             'list_rows' => ($limit <= 0 || $limit > 20) ? 20 : $limit,
         ];
         $lists = AdminModel::where($where)
             ->field('id,username,avatar,tel,email,status,last_login_ip,last_login_time,create_time')
+            ->order($order)
             ->paginate($paginate);
 
         foreach ($lists as $k => $v) {
@@ -119,7 +123,13 @@ class Admin extends BaseCheckUser
             $RoleAdmin->saveAll($temp);
         }
 
-        return 'SUCCESS';
+        $res['id'] = $admin_id;
+        $res['username'] = $AdminModel->username;
+        $res['password'] = '';
+        $res['status'] = $AdminModel->status;
+        $res['roles'] = $roles;
+
+        return json($res);
     }
 
     /**
