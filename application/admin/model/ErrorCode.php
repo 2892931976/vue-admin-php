@@ -33,5 +33,9 @@ class ErrorCode
     public static $USER_NOT_PERMISSION = 20003; // 当前没有权限登录
     public static $AUTH_FAILED = 20004; // 权限验证失败
     public static $LOGIN_FAILED = 20005; // 登录失效
+    public static $DATA_CHANGE = 20006; // 数据没有任何更改
+
+    // 管理员相关
+    public static $ADMIN_REPEAT = 30001; // 管理员重复
 
 }
