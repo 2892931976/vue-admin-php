@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50553
 File Encoding         : 65001
 
-Date: 2017-11-27 20:09:36
+Date: 2017-11-28 21:03:25
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -34,7 +34,7 @@ CREATE TABLE `lmx_admin` (
   PRIMARY KEY (`id`),
   KEY `user_login_key` (`username`),
   KEY `user_nicename` (`tel`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='管理员表';
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COMMENT='管理员表';
 
 -- ----------------------------
 -- Records of lmx_admin
@@ -42,6 +42,10 @@ CREATE TABLE `lmx_admin` (
 INSERT INTO `lmx_admin` VALUES ('2', 'admin', 'c3284d0f94606de1fd2af172aba15bf3', 'admin', 'lmxdawn@gmail.com', null, '0', '127.0.0.1', '1493103488', '1487868050', '1');
 INSERT INTO `lmx_admin` VALUES ('5', 'demo', '6c5ac7b4d3bd3311f033f971196cfa75', 'demo', '862253272@qq.com', null, '1', '127.0.0.1', '1488169490', '1487966028', '1');
 INSERT INTO `lmx_admin` VALUES ('6', 'demo1', '655e9d2a52f932bdde5ba3e0c544a6b9', 'demo1', '', null, '0', null, '0', '1487966314', '1');
+INSERT INTO `lmx_admin` VALUES ('7', 'test', 'fb469d7ef430b0baf0cab6c436e70375', '', '', null, '0', null, '0', '1511865902', '0');
+INSERT INTO `lmx_admin` VALUES ('8', 'test2', '7bfc85c0d74ff05806e0b5a0fa0c1df1', '', '', null, '0', null, '0', '1511868251', '0');
+INSERT INTO `lmx_admin` VALUES ('9', 'test3', '7bfc85c0d74ff05806e0b5a0fa0c1df1', '', '', null, '0', null, '0', '1511868307', '1');
+INSERT INTO `lmx_admin` VALUES ('10', 's', '0305d718926ac8776a442023509c21ce', '', '', null, '0', null, '0', '1511868379', '1');
 
 -- ----------------------------
 -- Table structure for lmx_auth_access
@@ -197,9 +201,9 @@ INSERT INTO `lmx_role` VALUES ('2', '普通管理', '0', '1', '测试', '0', '0'
 DROP TABLE IF EXISTS `lmx_role_admin`;
 CREATE TABLE `lmx_role_admin` (
   `role_id` int(11) unsigned DEFAULT '0' COMMENT '角色 id',
-  `user_id` int(11) DEFAULT '0' COMMENT '用户id',
+  `admin_id` int(11) DEFAULT '0' COMMENT '管理员id',
   KEY `group_id` (`role_id`),
-  KEY `user_id` (`user_id`)
+  KEY `user_id` (`admin_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户角色对应表';
 
 -- ----------------------------
