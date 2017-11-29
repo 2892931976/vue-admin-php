@@ -34,8 +34,9 @@ class ErrorCode
     public static $AUTH_FAILED = 20004; // 权限验证失败
     public static $LOGIN_FAILED = 20005; // 登录失效
     public static $DATA_CHANGE = 20006; // 数据没有任何更改
+    public static $DATA_REPEAT = 20007; // 数据重复
+    public static $DATA_NOT = 20007; // 数据不存在
 
     // 管理员相关
-    public static $ADMIN_REPEAT = 30001; // 管理员重复
 
 }

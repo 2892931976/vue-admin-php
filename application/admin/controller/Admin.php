@@ -71,7 +71,7 @@ class Admin extends BaseCheckUser
     }
 
     /**
-     * 添加管理员
+     * 添加
      */
     public function save(){
         $data = $this->request->post();
@@ -82,13 +82,13 @@ class Admin extends BaseCheckUser
             return json($res);
         }
         $username = $data['username'];
-        // 菜单模型
+        // 模型
         $info = AdminModel::where('username',$username)
             ->field('username')
             ->find();
         if ($info){
             $res = [];
-            $res['errcode'] = ErrorCode::$ADMIN_REPEAT;
+            $res['errcode'] = ErrorCode::$DATA_REPEAT;
             $res['errmsg'] = '管理员已存在';
             return json($res);
         }
@@ -133,30 +133,41 @@ class Admin extends BaseCheckUser
     }
 
     /**
-     * 编辑管理员
+     * 编辑
      */
     public function edit(){
         $data = $this->request->post();
-        if (empty($data['id'])){
+        if (empty($data['id']) || empty($data['username'])){
             $res = [];
             $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;
             $res['errmsg'] = 'Method Not Allowed';
             return json($res);
         }
         $id = $data['id'];
-        // 菜单模型
+        $username = strip_tags($data['username']);
+        // 模型
         $AdminModel = AdminModel::where('id',$id)
             ->field('id')
             ->find();
         if (!$AdminModel){
             $res = [];
-            $res['errcode'] = ErrorCode::$ADMIN_REPEAT;
+            $res['errcode'] = ErrorCode::$DATA_NOT;
             $res['errmsg'] = '管理员不存在';
             return json($res);
         }
 
+        $info = AdminModel::where('username',$username)
+            ->field('id')
+            ->find();
+        // 判断username 是否重名，剔除自己
+        if (!empty($info['id']) && $info['id'] != $id){
+            $res = [];
+            $res['errcode'] = ErrorCode::$DATA_REPEAT;
+            $res['errmsg'] = '管理员已存在';
+            return json($res);
+        }
+
         $status = isset($data['status']) ? $data['status'] : 0;
-        $username = isset($data['username']) ? $data['username'] : 0;
         $password = isset($data['password']) ? AdminModel::getPass($data['password']) : '';
         $AdminModel->username = $username;
         if ($password){
@@ -200,7 +211,7 @@ class Admin extends BaseCheckUser
     }
 
     /**
-     * 删除管理员
+     * 删除
      */
     public function delete(){
         $id = request()->post('id/d');
