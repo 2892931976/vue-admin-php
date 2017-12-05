@@ -3,12 +3,12 @@
 namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
-use \app\common\model\Role as RoleModel;
+use \app\common\model\AuthRule as AuthRuleModel;
 
 /**
- * 角色相关
+ * 权限相关
  */
-class Role extends BaseCheckUser
+class AuthRule extends BaseCheckUser
 {
 
     /**
@@ -29,12 +29,14 @@ class Role extends BaseCheckUser
             $where[] = ['name','like',$name . '%'];
             $order = '';
         }
-        $lists = RoleModel::where($where)
-            ->field('id,name,status,remark,create_time,listorder')
+        $lists = AuthRuleModel::where($where)
+            ->field('id,pid,name,title,status,condition,listorder')
             ->order($order)
             ->select();
 
-        return json($lists);
+        $tree_list = AuthRuleModel::cateMerge($lists,'id','pid',0);
+
+        return json($tree_list);
 
     }
 

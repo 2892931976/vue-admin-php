@@ -19,6 +19,19 @@ use think\Model;
 class AuthRule extends Model
 {
 
-//    protected $pk = 'id';
+    //    protected $pk = 'id';
+
+    /* 整合多维数组 */
+    public static function cateMerge($arr, $IdName, $pidName, $pid = 0)
+    {
+        $result = array();
+        foreach ($arr as $v) {
+            if ($v[$pidName] == $pid) {
+                $v['children'] = self::cateMerge($arr, $IdName, $pidName, $v[$IdName]);
+                $result[] = $v;
+            }
+        }
+        return $result;
+    }
 
 }
