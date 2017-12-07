@@ -51,27 +51,42 @@ class AuthRule extends BaseCheckUser
             $res['errmsg'] = 'Method Not Allowed';
             return json($res);
         }
-        $name = $data['name'];
+        $name = strip_tags($data['name']);
         // 菜单模型
-        $info = RoleModel::where('name',$name)
+        $info = AuthRuleModel::where('name',$name)
             ->field('name')
             ->find();
         if ($info){
             $res = [];
             $res['errcode'] = ErrorCode::$DATA_REPEAT;
-            $res['errmsg'] = '角色已存在';
+            $res['errmsg'] = '权限已经存在';
             return json($res);
         }
 
         $now_time = time();
         $status = isset($data['status']) ? $data['status'] : 0;
-        $RoleModel = new RoleModel();
-        $RoleModel->name = $name;
-        $RoleModel->status = $status;
-        $RoleModel->remark = isset($data['remark']) ? strip_tags($data['remark']) : '';
-        $RoleModel->create_time = $now_time;
-        $RoleModel->update_time = $now_time;
-        $result = $RoleModel->save();
+        $pid = isset($data['pid']) ? $data['pid'] : 0;
+        if ($pid){
+            $info = AuthRuleModel::where('id',$pid)
+                ->field('id')
+                ->find();
+            if (!$info){
+                $res = [];
+                $res['errcode'] = ErrorCode::$NOT_NETWORK;
+                $res['errmsg'] = '网络繁忙';
+                return json($res);
+            }
+        }
+        $AuthRuleModel = new AuthRuleModel();
+        $AuthRuleModel->pid = $pid;
+        $AuthRuleModel->name = $name;
+        $AuthRuleModel->title = isset($data['title']) ? $data['title'] : '';
+        $AuthRuleModel->status = $status;
+        $AuthRuleModel->condition = isset($data['condition']) ? $data['condition'] : '';
+        $AuthRuleModel->listorder = isset($data['listorder']) ? strip_tags($data['listorder']) : 0;
+        $AuthRuleModel->create_time = $now_time;
+        $AuthRuleModel->update_time = $now_time;
+        $result = $AuthRuleModel->save();
 
         if (!$result){
             $res = [];
@@ -80,11 +95,15 @@ class AuthRule extends BaseCheckUser
             return json($res);
         }
 
-        $res['id'] = $RoleModel->getLastInsID();
-        $res['name'] = $RoleModel->name;
-        $res['status'] = $RoleModel->status;
-        $res['remark'] = $RoleModel->remark;
-        $res['create_time'] = $RoleModel->create_time;
+        $res['id'] = $AuthRuleModel->getLastInsID();
+        $res['pid'] = $AuthRuleModel->pid;
+        $res['name'] = $AuthRuleModel->name;
+        $res['title'] = $AuthRuleModel->title;
+        $res['status'] = $AuthRuleModel->status;
+        $res['condition'] = $AuthRuleModel->condition;
+        $res['listorder'] = $AuthRuleModel->listorder;
+        $res['create_time'] = $AuthRuleModel->create_time;
+        $res['update_time'] = $AuthRuleModel->update_time;
 
         return json($res);
     }
@@ -103,34 +122,58 @@ class AuthRule extends BaseCheckUser
         $id = $data['id'];
         $name = strip_tags($data['name']);
         // 模型
-        $RoleModel = RoleModel::where('id',$id)
+        $AuthRuleModel = AuthRuleModel::where('id',$id)
             ->field('id')
             ->find();
-        if (!$RoleModel){
+        if (!$AuthRuleModel){
             $res = [];
             $res['errcode'] = ErrorCode::$DATA_NOT;
             $res['errmsg'] = '角色不存在';
             return json($res);
         }
 
-        $info = RoleModel::where('name',$name)
-            ->field('id')
+        $info = AuthRuleModel::where('name',$name)
+            ->field('id,pid')
             ->find();
-        // 判断角色名称 是否重名，剔除自己
+        // 判断名称 是否重名，剔除自己
         if (!empty($info['id']) && $info['id'] != $id){
             $res = [];
             $res['errcode'] = ErrorCode::$DATA_REPEAT;
-            $res['errmsg'] = '角色名称已存在';
+            $res['errmsg'] = '权限名称已存在';
+            return json($res);
+        }
+        $pid = isset($data['pid']) ? $data['pid'] : 0;
+        if ($info['id'] == $pid){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '不能把自身作为父级';
             return json($res);
         }
 
+        $pid1 = AuthRuleModel::where('pid',$id)->value('pid');
+
+        // 判断父级是否存在
+        if ($pid){
+            $info = AuthRuleModel::where('id',$pid)
+                ->field('id')
+                ->find();
+            if (!$info){
+                $res = [];
+                $res['errcode'] = ErrorCode::$NOT_NETWORK;
+                $res['errmsg'] = '网络繁忙';
+                return json($res);
+            }
+        }
+
         $status = isset($data['status']) ? $data['status'] : 0;
-        $RoleModel->name = $name;
-        $RoleModel->status = $status;
-        $RoleModel->remark = isset($data['remark']) ? strip_tags($data['remark']) : '';
-        $RoleModel->update_time = time();
-        $RoleModel->listorder = isset($data['listorder']) ? intval($data['listorder']) : 999;
-        $result = $RoleModel->save();
+        $AuthRuleModel->pid = $pid;
+        $AuthRuleModel->name = $name;
+        $AuthRuleModel->title = isset($data['title']) ? $data['title'] : '';
+        $AuthRuleModel->status = $status;
+        $AuthRuleModel->condition = isset($data['condition']) ? $data['condition'] : '';
+        $AuthRuleModel->listorder = isset($data['listorder']) ? strip_tags($data['listorder']) : 0;
+        $AuthRuleModel->update_time = time();
+        $result = $AuthRuleModel->save();
 
         if (!$result){
             $res = [];
