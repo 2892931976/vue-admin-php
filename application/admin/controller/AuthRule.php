@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
+use app\common\model\AuthAccess;
 use \app\common\model\AuthRule as AuthRuleModel;
 
 /**
@@ -29,14 +30,12 @@ class AuthRule extends BaseCheckUser
             $where[] = ['name','like',$name . '%'];
             $order = '';
         }
-        $lists = AuthRuleModel::where($where)
-            ->field('id,pid,name,title,status,condition,listorder')
-            ->order($order)
-            ->select();
-
-        $tree_list = AuthRuleModel::cateMerge($lists,'id','pid',0);
-
-        return json($tree_list);
+        $lists = AuthRuleModel::getLists($where,$order);
+        $merge_list = AuthRuleModel::cateMerge($lists,'id','pid',0);
+        $tree_list = AuthRuleModel::cateTree($lists,'id','pid',0);
+        $res['merge_list'] = $merge_list;
+        $res['tree_list'] = $tree_list;
+        return json($res);
 
     }
 
@@ -51,7 +50,7 @@ class AuthRule extends BaseCheckUser
             $res['errmsg'] = 'Method Not Allowed';
             return json($res);
         }
-        $name = strip_tags($data['name']);
+        $name = strtolower(strip_tags($data['name']));
         // 菜单模型
         $info = AuthRuleModel::where('name',$name)
             ->field('name')
@@ -120,7 +119,7 @@ class AuthRule extends BaseCheckUser
             return json($res);
         }
         $id = $data['id'];
-        $name = strip_tags($data['name']);
+        $name = strtolower(strip_tags($data['name']));
         // 模型
         $AuthRuleModel = AuthRuleModel::where('id',$id)
             ->field('id')
@@ -132,26 +131,18 @@ class AuthRule extends BaseCheckUser
             return json($res);
         }
 
-        $info = AuthRuleModel::where('name',$name)
-            ->field('id,pid')
+        $idInfo = AuthRuleModel::where('name',$name)
+            ->field('id')
             ->find();
         // 判断名称 是否重名，剔除自己
-        if (!empty($info['id']) && $info['id'] != $id){
+        if (!empty($idInfo['id']) && $idInfo['id'] != $id){
             $res = [];
             $res['errcode'] = ErrorCode::$DATA_REPEAT;
             $res['errmsg'] = '权限名称已存在';
             return json($res);
         }
+
         $pid = isset($data['pid']) ? $data['pid'] : 0;
-        if ($info['id'] == $pid){
-            $res = [];
-            $res['errcode'] = ErrorCode::$NOT_NETWORK;
-            $res['errmsg'] = '不能把自身作为父级';
-            return json($res);
-        }
-
-        $pid1 = AuthRuleModel::where('pid',$id)->value('pid');
-
         // 判断父级是否存在
         if ($pid){
             $info = AuthRuleModel::where('id',$pid)
@@ -163,6 +154,15 @@ class AuthRule extends BaseCheckUser
                 $res['errmsg'] = '网络繁忙';
                 return json($res);
             }
+        }
+        $AuthRuleList = AuthRuleModel::all();
+        // 查找当前选择的父级的所有上级
+        $parents = AuthRuleModel::queryParentAll($AuthRuleList,'id','pid',$pid);
+        if (in_array($id,$parents)){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '不能把自身/子级作为父级';
+            return json($res);
         }
 
         $status = isset($data['status']) ? $data['status'] : 0;
@@ -198,7 +198,16 @@ class AuthRule extends BaseCheckUser
             $res['errmsg'] = 'Method Not Allowed';
             return json($res);
         }
-        if (!RoleModel::where('id',$id)->delete()){
+
+        $sub = AuthRuleModel::where('pid',$id)->field('id')->find();
+        if ($sub){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '网络繁忙！';
+            return json($res);
+        }
+
+        if (!AuthRuleModel::where('id',$id)->delete()){
             $res = [];
             $res['errcode'] = ErrorCode::$NOT_NETWORK;
             $res['errmsg'] = '网络繁忙！';

@@ -4,6 +4,8 @@ namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
 use app\common\model\Admin;
+use app\common\model\AuthRule;
+use app\common\model\RoleAdmin;
 
 /**
  * 登录
@@ -53,7 +55,29 @@ class Login extends Base
 
         $info = $admin->toArray();
         unset($info['password']);
+
         // 权限信息
+        $roles = [];
+        if ($user_name == 'admin'){
+            $roles = ['admin'];
+        }else{
+            $role_user_list = RoleAdmin::where('admin_id',$admin->id)
+                ->field('role_id')
+                ->select();
+            if ($role_user_list){
+                $role_ids = array_column($role_user_list->toArray(),'role_id');
+                $auth_rule_ids = AuthAccess::where('role_id','in',$role_ids)
+                    ->field(['auth_rule_id'])
+                    ->select();
+                foreach ($auth_rule_ids as $key=>$val){
+                    $name = AuthRule::where('id',$val['auth_rule_id'])->value('name');
+                    if ($name){
+                        $roles = [];
+                    }
+                }
+            }
+        }
+        $info['roles'] = $roles;
         $info['roles'] = [
             'user_manage',
             'user_manage/admin',
@@ -65,6 +89,27 @@ class Login extends Base
         $res = Admin::loginInfo($info['id'],$info);
         $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
         $res['avatar'] = !empty($res['avatar']) ? Admin::getAvatarUrl($res['avatar']) : '';
+        return json($res);
+    }
+
+    /**
+     * 获取登录用户信息
+     * @return \think\response\Json
+     */
+    public function userInfo()
+    {
+        $id = request()->header('X-Adminid');
+        $token = request()->header('X-Token');
+        if (!$id || !$token) {
+            $res = [];
+            $res['errcode'] = ErrorCode::$LOGIN_FAILED;
+            $res['errmsg'] = '登录失效';
+            return json($res);
+        }
+        $res = Admin::loginInfo($id, (string)$token);
+        $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
+        $res['avatar'] = !empty($res['avatar']) ? Admin::getAvatarUrl($res['avatar']) : '';
+        // $res['roles'] = ['admin'];
         return json($res);
     }
 

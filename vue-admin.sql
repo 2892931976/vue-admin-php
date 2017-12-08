@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50553
 File Encoding         : 65001
 
-Date: 2017-11-28 21:03:25
+Date: 2017-12-08 21:25:34
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -52,61 +52,26 @@ INSERT INTO `lmx_admin` VALUES ('10', 's', '0305d718926ac8776a442023509c21ce', '
 -- ----------------------------
 DROP TABLE IF EXISTS `lmx_auth_access`;
 CREATE TABLE `lmx_auth_access` (
-  `role_id` mediumint(8) unsigned NOT NULL COMMENT '角色',
-  `rule_name` varchar(255) NOT NULL COMMENT '规则唯一英文标识,全小写',
+  `role_id` int(11) unsigned NOT NULL COMMENT '角色',
+  `auth_rule_id` int(11) NOT NULL DEFAULT '0' COMMENT '权限id',
   `type` varchar(30) DEFAULT NULL COMMENT '权限规则分类，请加应用前缀,如admin_',
   KEY `role_id` (`role_id`),
-  KEY `rule_name` (`rule_name`) USING BTREE
+  KEY `rule_name` (`auth_rule_id`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='权限授权表';
 
 -- ----------------------------
 -- Records of lmx_auth_access
 -- ----------------------------
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/System/updateSiteConfig', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/del_backup', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/import', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/System/siteConfig', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Setting/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/restore', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/System/siteConfig', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/System/updateSiteConfig', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Setting/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Backup/download', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Node/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Node/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('2', 'admin/Node/add', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/restore', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/import', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/del_backup', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Backup/download', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Users/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Users/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Users/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Admin/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Rbac/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Admin/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Admin/add', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Admin/edit', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Admin/delete', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Node/default', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Node/index', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Node/add', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Node/edit', 'admin');
-INSERT INTO `lmx_auth_access` VALUES ('1', 'admin/Node/delete', 'admin');
 
 -- ----------------------------
 -- Table structure for lmx_auth_rule
 -- ----------------------------
 DROP TABLE IF EXISTS `lmx_auth_rule`;
 CREATE TABLE `lmx_auth_rule` (
-  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT COMMENT '规则编号',
+  `id` int(8) unsigned NOT NULL AUTO_INCREMENT COMMENT '规则编号',
+  `pid` int(11) DEFAULT '0' COMMENT '父级id',
   `name` char(80) NOT NULL DEFAULT '' COMMENT '规则唯一标识',
   `title` char(20) DEFAULT '' COMMENT '规则中文名称',
-  `type` tinyint(1) DEFAULT '1' COMMENT '规则类型',
   `status` tinyint(1) DEFAULT '1' COMMENT '状态：为1正常，为0禁用',
   `condition` char(100) DEFAULT '' COMMENT '规则表达式，为空表示存在就验证，不为空表示按照条件验证',
   `listorder` int(10) DEFAULT '0' COMMENT '排序，优先级，越小优先级越高',
@@ -114,62 +79,11 @@ CREATE TABLE `lmx_auth_rule` (
   `update_time` int(11) DEFAULT '0' COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=88 DEFAULT CHARSET=utf8 COMMENT='规则表';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='规则表';
 
 -- ----------------------------
 -- Records of lmx_auth_rule
 -- ----------------------------
-INSERT INTO `lmx_auth_rule` VALUES ('45', 'admin/Node/default', '菜单管理', '1', '1', '', '0', '1488007070', '1488007070');
-INSERT INTO `lmx_auth_rule` VALUES ('46', 'admin/System/siteConfig', '网站配置', '1', '1', '', '0', '1488043079', '1489038654');
-INSERT INTO `lmx_auth_rule` VALUES ('47', 'admin/System/updateSiteConfig', '更新配置', '1', '1', '', '0', '1488043231', '1488043231');
-INSERT INTO `lmx_auth_rule` VALUES ('48', 'admin/Backup/default', '备份管理', '1', '1', '', '0', '1488044935', '1488044935');
-INSERT INTO `lmx_auth_rule` VALUES ('31', 'admin/Node/index', '后台菜单', '1', '1', '', '0', '1487789220', '1487950594');
-INSERT INTO `lmx_auth_rule` VALUES ('32', 'admin/Node/add', '添加菜单', '1', '1', '', '0', '1487789234', '1487789234');
-INSERT INTO `lmx_auth_rule` VALUES ('33', 'admin/Node/delete', '删除菜单', '1', '1', '', '0', '1487789246', '1487789246');
-INSERT INTO `lmx_auth_rule` VALUES ('34', 'admin/Node/edit', '编辑菜单', '1', '1', '', '0', '1487789255', '1487789255');
-INSERT INTO `lmx_auth_rule` VALUES ('35', 'admin/Setting/default', '设置', '1', '1', '', '0', '1487951321', '1487951321');
-INSERT INTO `lmx_auth_rule` VALUES ('36', 'admin/Users/default', '用户组', '1', '1', '', '0', '1487951847', '1487999511');
-INSERT INTO `lmx_auth_rule` VALUES ('37', 'admin/Users/index', '本站用户', '1', '1', '', '0', '1487954667', '1487999501');
-INSERT INTO `lmx_auth_rule` VALUES ('38', 'admin/Admin/default', '管理组', '1', '1', '', '0', '1487954732', '1487954732');
-INSERT INTO `lmx_auth_rule` VALUES ('39', 'admin/Admin/index', '管理员', '1', '1', '', '0', '1487957700', '1487999532');
-INSERT INTO `lmx_auth_rule` VALUES ('40', 'admin/Admin/add', '添加管理员', '1', '1', '', '0', '1487966778', '1487966778');
-INSERT INTO `lmx_auth_rule` VALUES ('41', 'admin/Admin/edit', '编辑管理员', '1', '1', '', '0', '1487966821', '1487966821');
-INSERT INTO `lmx_auth_rule` VALUES ('42', 'admin/Admin/delete', '删除管理员', '1', '1', '', '0', '1487966874', '1487966874');
-INSERT INTO `lmx_auth_rule` VALUES ('43', 'admin/Role/index', '角色管理', '1', '1', '', '0', '1487997838', '1487997838');
-INSERT INTO `lmx_auth_rule` VALUES ('44', 'admin/Rbac/index', '角色管理', '1', '1', '', '0', '1487998167', '1487999640');
-INSERT INTO `lmx_auth_rule` VALUES ('49', 'admin/Backup/index', '数据备份', '1', '1', '', '0', '1488044981', '1488044981');
-INSERT INTO `lmx_auth_rule` VALUES ('50', 'admin/Backup/restore', '数据列表', '1', '1', '', '0', '1488045030', '1488052426');
-INSERT INTO `lmx_auth_rule` VALUES ('51', 'admin/Backup/import', '数据恢复', '1', '1', '', '0', '1488052552', '1488052552');
-INSERT INTO `lmx_auth_rule` VALUES ('52', 'admin/Backup/del_backup', '数据删除', '1', '1', '', '0', '1488052594', '1488052594');
-INSERT INTO `lmx_auth_rule` VALUES ('53', 'admin/Backup/download', '数据下载', '1', '1', '', '0', '1488052624', '1488052624');
-INSERT INTO `lmx_auth_rule` VALUES ('54', 'admin/Content/default', '内容管理', '1', '1', '', '0', '1488597861', '1488597861');
-INSERT INTO `lmx_auth_rule` VALUES ('82', 'admin/ArticleCategory/add', '添加分类', '1', '1', '', '0', '1493105153', '1493105153');
-INSERT INTO `lmx_auth_rule` VALUES ('83', 'admin/ArticleCategory/edit', '编辑分类', '1', '1', '', '0', '1493105215', '1493105215');
-INSERT INTO `lmx_auth_rule` VALUES ('84', 'admin/ArticleCategory/delete', '删除分类', '1', '1', '', '0', '1493105222', '1493105222');
-INSERT INTO `lmx_auth_rule` VALUES ('85', 'admin/Article/add', '添加文章', '1', '1', '', '0', '1493105255', '1493105255');
-INSERT INTO `lmx_auth_rule` VALUES ('59', 'admin/Article/index', '文章列表', '1', '1', '', '0', '1488691790', '1493103716');
-INSERT INTO `lmx_auth_rule` VALUES ('60', 'admin/System/setAppAndroidConfig', 'android配置', '1', '1', '', '0', '1489031361', '1489031361');
-INSERT INTO `lmx_auth_rule` VALUES ('61', 'admin/System/upAppAndroidConfig', '更新android配置', '1', '1', '', '0', '1489031431', '1489031431');
-INSERT INTO `lmx_auth_rule` VALUES ('62', 'admin/Tool/default', '扩展工具', '1', '1', '', '0', '1489476084', '1489547712');
-INSERT INTO `lmx_auth_rule` VALUES ('81', 'admin/ArticleCategory/index', '文章分类', '1', '1', '', '0', '1493103763', '1493111457');
-INSERT INTO `lmx_auth_rule` VALUES ('80', 'admin/Article/default', '文章管理', '1', '1', '', '0', '1493103540', '1493103683');
-INSERT INTO `lmx_auth_rule` VALUES ('65', 'admin/Slide/default', '幻灯片', '1', '1', '', '0', '1489489395', '1489489395');
-INSERT INTO `lmx_auth_rule` VALUES ('66', 'admin/Slide/index', '幻灯片管理', '1', '1', '', '0', '1489489421', '1489489421');
-INSERT INTO `lmx_auth_rule` VALUES ('67', 'admin/SlideCat/index', '幻灯片分类', '1', '1', '', '0', '1489489448', '1489489448');
-INSERT INTO `lmx_auth_rule` VALUES ('68', 'admin/Slide/add', '添加幻灯片', '1', '1', '', '0', '1489546558', '1489546558');
-INSERT INTO `lmx_auth_rule` VALUES ('69', 'admin/Slide/edit', '编辑幻灯片', '1', '1', '', '0', '1489546580', '1489546580');
-INSERT INTO `lmx_auth_rule` VALUES ('70', 'admin/Slide/delete', '删除幻灯片', '1', '1', '', '0', '1489546608', '1489546608');
-INSERT INTO `lmx_auth_rule` VALUES ('71', 'admin/SlideCat/add', '添加幻灯片分类', '1', '1', '', '0', '1489546644', '1489546644');
-INSERT INTO `lmx_auth_rule` VALUES ('72', 'admin/SlideCat/edit', '编辑幻灯片分类', '1', '1', '', '0', '1489546670', '1489546670');
-INSERT INTO `lmx_auth_rule` VALUES ('73', 'admin/SlideCat/delete', '删除幻灯片分类', '1', '1', '', '0', '1489546702', '1489546702');
-INSERT INTO `lmx_auth_rule` VALUES ('74', 'admin/AppRecommend/index', '推荐应用管理', '1', '1', '', '0', '1489554977', '1489554977');
-INSERT INTO `lmx_auth_rule` VALUES ('75', 'admin/AppRecommend/add', '添加推荐应用', '1', '1', '', '0', '1489555011', '1489555011');
-INSERT INTO `lmx_auth_rule` VALUES ('76', 'admin/AppRecommend/edit', '编辑推荐应用', '1', '1', '', '0', '1489555035', '1489555035');
-INSERT INTO `lmx_auth_rule` VALUES ('77', 'admin/AppRecommend/delete', '删除推荐应用', '1', '1', '', '0', '1489555118', '1489555118');
-INSERT INTO `lmx_auth_rule` VALUES ('78', 'admin/AppRecommend/setShowCount', '客户端的显示数量', '1', '1', '', '0', '1489555243', '1489555256');
-INSERT INTO `lmx_auth_rule` VALUES ('79', 'admin/AppRecommend/setAppRecommendConf', '推荐应用配置', '1', '1', '', '0', '1489557777', '1489557777');
-INSERT INTO `lmx_auth_rule` VALUES ('86', 'admin/Article/edit', '编辑文章', '1', '1', '', '0', '1493105273', '1493105273');
-INSERT INTO `lmx_auth_rule` VALUES ('87', 'admin/Article/delete', '删除文章', '1', '1', '', '0', '1493105291', '1493105291');
 
 -- ----------------------------
 -- Table structure for lmx_role

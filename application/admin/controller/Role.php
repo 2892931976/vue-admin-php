@@ -3,6 +3,8 @@
 namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
+use app\common\model\AuthAccess;
+use app\common\model\AuthRule;
 use \app\common\model\Role as RoleModel;
 
 /**
@@ -38,11 +40,63 @@ class Role extends BaseCheckUser
 
     }
 
+    public function auth(){
+        if (request()->isGet()){
+            $id = request()->get('id/d','');
+            $auth_access = AuthAccess::where('role_id',$id)
+                ->field(['auth_rule_id'])
+                ->select();
+            $rule_list = AuthRule::getLists([],'id ASC');
+            $checked_keys = [];
+            foreach ($rule_list as $key=>$value){
+                foreach ($auth_access as $k=>$v){
+                    if (strtolower($value['id']) == strtolower($v['auth_rule_id'])){
+                        $checked_keys[] = $value['auth_rule_id'];
+                    }
+                }
+            }
+
+            $merge_list = AuthRule::cateMerge($rule_list,'id','pid',0);
+            $res['auth_list'] = $merge_list;
+            $res['checked_keys'] = $checked_keys;
+            return json($res);
+        }
+
+        $data = request()->post();
+        $role_id = isset($data['role_id']) ? $data['role_id'] : '';
+        if (!$role_id){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '网络繁忙！';
+            return json($res);
+        }
+        $auth_rules = isset($data['auth_rules']) ? $data['auth_rules'] : [];
+        $rule_access = [];
+        foreach ($auth_rules as $key=>$val){
+            $rule_access[$key]['role_id'] = $role_id;
+            $rule_access[$key]['auth_rule_id'] = $val;
+            $rule_access[$key]['type'] = 'admin';
+        }
+
+        //先删除
+        $AuthAccess = new AuthAccess();
+        $AuthAccess->where(['role_id' => $role_id])->delete();
+        if (!$rule_access || !$AuthAccess->saveAll($rule_access)){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '网络繁忙！';
+            return json($res);
+        }
+
+        return 'SUCCESS';
+
+    }
+
     /**
      * 添加
      */
     public function save(){
-        $data = $this->request->post();
+        $data = request()->post();
         if (empty($data['name']) || empty($data['status'])){
             $res = [];
             $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;
@@ -91,7 +145,7 @@ class Role extends BaseCheckUser
      * 编辑
      */
     public function edit(){
-        $data = $this->request->post();
+        $data = request()->post();
         if (empty($data['id']) || empty($data['name'])){
             $res = [];
             $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;

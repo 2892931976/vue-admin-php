@@ -4,6 +4,7 @@ namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
 use \app\common\model\Admin as AdminModel;
+use app\common\model\Role;
 use app\common\model\RoleAdmin;
 
 /**
@@ -53,28 +54,22 @@ class Admin extends BaseCheckUser
             $lists[$k]['roles'] = $temp_roles;
         }
 
+        $role_list = Role::where('status',1)
+            ->field('id,name')
+            ->order('id ASC')
+            ->select();
+
+        $lists['role_list'] = $role_list;
+
         return json($lists);
 
-    }
-
-    /**
-     * 获取用户信息
-     * @return \think\response\Json
-     */
-    public function read()
-    {
-        $res = $this->adminInfo;
-        $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
-        $res['avatar'] = !empty($res['avatar']) ? AdminModel::getAvatarUrl($res['avatar']) : '';
-        // $res['roles'] = ['admin'];
-        return json($res);
     }
 
     /**
      * 添加
      */
     public function save(){
-        $data = $this->request->post();
+        $data = request()->post();
         if (empty($data['username']) || empty($data['password'])){
             $res = [];
             $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;
@@ -136,7 +131,7 @@ class Admin extends BaseCheckUser
      * 编辑
      */
     public function edit(){
-        $data = $this->request->post();
+        $data = request()->post();
         if (empty($data['id']) || empty($data['username'])){
             $res = [];
             $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;
