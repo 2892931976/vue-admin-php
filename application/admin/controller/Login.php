@@ -148,8 +148,64 @@ class Login extends Base
     }
 
 
-    public function s(){
-        $loginInfo = Admin::loginInfo(2,'eyJpZHNzIjoiJDJ5JDEwJGRtYTh0S3diWHpqeHJsYTJ5R3dHd2VrSVRON3g0SEhzUENEdVdcL3kxeVVta0RjVlE3NDNidSJ9_2017-11-27');
-        dump($loginInfo);
+    /**
+     * 修改密码
+     */
+    public function password(){
+        if (!request()->isPost()){
+            $res = [];
+            $res['errcode'] = ErrorCode::$HTTP_METHOD_NOT_ALLOWED;
+            $res['errmsg'] = 'Method Not Allowed';
+            return json($res);
+        }
+        $id = request()->header('X-Adminid');
+        $token = request()->header('X-Token');
+        if (!$id || !$token) {
+            $res = [];
+            $res['errcode'] = ErrorCode::$LOGIN_FAILED;
+            $res['errmsg'] = '登录失效';
+            return json($res);
+        }
+        $loginInfo = Admin::loginInfo($id,(string)$token);
+        if ($loginInfo == false){
+            $res = [];
+            $res['errcode'] = ErrorCode::$LOGIN_FAILED;
+            $res['errmsg'] = '登录失效';
+            return json($res);
+        }
+        $old_password = request()->post('old_password');
+        $new_password = request()->post('new_password');
+
+        $admin_info = Admin::where('id',$id)->field('username,password')->find();
+        if ($admin_info['username'] == 'admin'){
+            $res = [];
+            $res['errcode'] = ErrorCode::$USER_AUTH_FAIL;
+            $res['errmsg'] = '超级管理员不能修改密码';
+            return json($res);
+        }
+        if ($admin_info['password'] != Admin::getPass($old_password)){
+            $res = [];
+            $res['errcode'] = ErrorCode::$USER_AUTH_FAIL;
+            $res['errmsg'] = '原始密码错误';
+            return json($res);
+        }
+
+        if ($admin_info['password'] == Admin::getPass($new_password)){
+            $res = [];
+            $res['errcode'] = ErrorCode::$USER_AUTH_FAIL;
+            $res['errmsg'] = '密码未做修改';
+            return json($res);
+        }
+
+        $admin_info->password = Admin::getPass($new_password);
+        if (!$admin_info->save()){
+            $res = [];
+            $res['errcode'] = ErrorCode::$NOT_NETWORK;
+            $res['errmsg'] = '网络繁忙！';
+            return json($res);
+        }
+
+        return 'SUCCESS';
+
     }
 }
