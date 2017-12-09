@@ -51,7 +51,7 @@ class Role extends BaseCheckUser
             foreach ($rule_list as $key=>$value){
                 foreach ($auth_access as $k=>$v){
                     if (strtolower($value['id']) == strtolower($v['auth_rule_id'])){
-                        $checked_keys[] = $value['auth_rule_id'];
+                        $checked_keys[] = $v['auth_rule_id'];
                     }
                 }
             }

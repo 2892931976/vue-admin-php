@@ -199,6 +199,7 @@ class AuthRule extends BaseCheckUser
             return json($res);
         }
 
+        // 下面有子节点，不能删除
         $sub = AuthRuleModel::where('pid',$id)->field('id')->find();
         if ($sub){
             $res = [];
@@ -213,6 +214,9 @@ class AuthRule extends BaseCheckUser
             $res['errmsg'] = '网络繁忙！';
             return json($res);
         }
+
+        // 删除授权的权限
+        AuthAccess::where('auth_rule_id',$id)->delete();
 
         return 'SUCCESS';
 

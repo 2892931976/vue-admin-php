@@ -4,6 +4,7 @@ namespace app\admin\controller;
 
 use app\admin\model\ErrorCode;
 use app\common\model\Admin;
+use app\common\model\AuthAccess;
 use app\common\model\AuthRule;
 use app\common\model\RoleAdmin;
 
@@ -57,38 +58,36 @@ class Login extends Base
         unset($info['password']);
 
         // 权限信息
-        $roles = [];
+        $authRules = [];
         if ($user_name == 'admin'){
-            $roles = ['admin'];
+            $authRules = ['admin'];
         }else{
-            $role_user_list = RoleAdmin::where('admin_id',$admin->id)
-                ->field('role_id')
-                ->select();
-            if ($role_user_list){
-                $role_ids = array_column($role_user_list->toArray(),'role_id');
+            $role_ids = RoleAdmin::where('admin_id',$admin->id)->column('role_id');
+            if ($role_ids){
                 $auth_rule_ids = AuthAccess::where('role_id','in',$role_ids)
                     ->field(['auth_rule_id'])
                     ->select();
                 foreach ($auth_rule_ids as $key=>$val){
                     $name = AuthRule::where('id',$val['auth_rule_id'])->value('name');
                     if ($name){
-                        $roles = [];
+                        $authRules[] = $name;
                     }
                 }
             }
         }
-        $info['roles'] = $roles;
-        $info['roles'] = [
-            'user_manage',
-            'user_manage/admin',
-            'admin/admin/index',
-            'admin/role/index',
-            'admin/authRule/index',
-        ];
+        $info['authRules'] = $authRules;
+//        $info['authRules'] = [
+//            'user_manage',
+//            'user_manage/admin',
+//            'admin/admin/index',
+//            'admin/role/index',
+//            'admin/authRule/index',
+//        ];
         // 保存用户信息
-        $res = Admin::loginInfo($info['id'],$info);
-        $res['id'] = !empty($res['id']) ? intval($res['id']) : 0;
-        $res['avatar'] = !empty($res['avatar']) ? Admin::getAvatarUrl($res['avatar']) : '';
+        $loginInfo = Admin::loginInfo($info['id'],$info);
+        $res = [];
+        $res['id'] = !empty($loginInfo['id']) ? intval($loginInfo['id']) : 0;
+        $res['token'] = !empty($loginInfo['token']) ? $loginInfo['token'] : '';
         return json($res);
     }
 
@@ -126,8 +125,8 @@ class Login extends Base
             return json($res);
         }
 
-        $id = request()->post('id');
-        $token = request()->post('token');
+        $id = request()->header('X-Adminid');
+        $token = request()->header('X-Token');
         if (!$id || !$token) {
             $res = [];
             $res['errcode'] = ErrorCode::$LOGIN_FAILED;

@@ -31,6 +31,12 @@ class Admin extends BaseCheckUser
             $where[] = ['username','like',$username . '%'];
             $order = '';
         }
+        $role_id = request()->get('role_id/id', '');
+        if ($role_id !== ''){
+            $admin_ids = RoleAdmin::where('role_id',$role_id)->column('admin_id');
+            $where[] = ['id','in',$admin_ids];
+            $order = '';
+        }
         $limit = request()->get('limit/d', 20);
         //分页配置
         $paginate = [
@@ -59,9 +65,10 @@ class Admin extends BaseCheckUser
             ->order('id ASC')
             ->select();
 
-        $lists['role_list'] = $role_list;
+        $res['admin_list'] = $lists;
+        $res['role_list'] = $role_list;
 
-        return json($lists);
+        return json($res);
 
     }
 
@@ -142,9 +149,9 @@ class Admin extends BaseCheckUser
         $username = strip_tags($data['username']);
         // 模型
         $AdminModel = AdminModel::where('id',$id)
-            ->field('id')
+            ->field('id,username')
             ->find();
-        if (!$AdminModel){
+        if (!$AdminModel || $AdminModel->username == 'admin'){
             $res = [];
             $res['errcode'] = ErrorCode::$DATA_NOT;
             $res['errmsg'] = '管理员不存在';
@@ -216,7 +223,8 @@ class Admin extends BaseCheckUser
             $res['errmsg'] = 'Method Not Allowed';
             return json($res);
         }
-        if (!AdminModel::where('id',$id)->delete()){
+        $AdminModel = AdminModel::where('id',$id)->field('username')->find();
+        if (!$AdminModel || $AdminModel['username'] == 'admin' || !$AdminModel->delete()){
             $res = [];
             $res['errcode'] = ErrorCode::$NOT_NETWORK;
             $res['errmsg'] = '网络繁忙！';
